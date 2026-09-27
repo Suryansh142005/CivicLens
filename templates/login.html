@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicLens - Citizen Portal Access</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #059669;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-400: #94a3b8;
+      --slate-100: #f1f5f9;
+      --amber: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #090d16;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #fff;
+    }
+
+    /* Outer Wrapper Container */
+    .portal-container {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      max-width: 1060px;
+      width: 100%;
+      min-height: 620px;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Left Hero / Civic Impact Showcase */
+    .hero-panel {
+      position: relative;
+      background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.22) 0%, transparent 60%),
+                  radial-gradient(circle at 90% 80%, rgba(5, 150, 105, 0.18) 0%, transparent 50%),
+                  #111827;
+      padding: 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid rgba(37, 99, 235, 0.35);
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #60a5fa;
+      width: fit-content;
+      margin-bottom: 20px;
+    }
+
+    .brand-title {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    .brand-desc {
+      font-size: 14px;
+      color: var(--slate-400);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    /* Real-Time Impact Metric Tiles */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 14px 10px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .metric-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: #38bdf8;
+      display: block;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* Civic Features Bullet Badges */
+    .civic-features {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    .feature-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    /* Right Auth Form Section */
+    .form-panel {
+      padding: 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #0f172a;
+    }
+
+    /* Tab Switcher (Sign In vs Register) */
+    .tab-switcher {
+      display: flex;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--slate-400);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    .form-header h3 {
+      font-size: 20px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .form-header p {
+      font-size: 13px;
+      color: var(--slate-400);
+      margin-bottom: 22px;
+    }
+
+    .input-field {
+      margin-bottom: 16px;
+    }
+
+    .input-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .input-wrapper input:focus {
+      border-color: var(--primary);
+      background: rgba(37, 99, 235, 0.05);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    .input-wrapper input::placeholder {
+      color: #64748b;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-submit:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-submit:active {
+      transform: translateY(1px);
+    }
+
+    .guest-link {
+      display: block;
+      text-align: center;
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--slate-400);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .guest-link:hover {
+      color: #fff;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 820px) {
+      .portal-container {
+        grid-template-columns: 1fr;
+      }
+      .hero-panel {
+        display: none;
+      }
+      .form-panel {
+        padding: 32px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="portal-container">
+  
+  <!-- Left Panel: Civic Engagement Showcase -->
+  <div class="hero-panel">
+    <div>
+      <div class="brand-badge">
+        <span>📍</span> Hyperlocal Civic Governance
+      </div>
+      <h1 class="brand-title">CivicLens</h1>
+      <p class="brand-desc">
+        Empowering citizens to report localized infrastructure grievances with tamper-proof camera coordinates and collective community verification.
+      </p>
+
+      <div class="metric-grid">
+        <div class="metric-card">
+          <span class="metric-val">30m</span>
+          <span class="metric-label">Spatial Radius</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-val">10 Votes</span>
+          <span class="metric-label">Auto-Escalation</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-val">100%</span>
+          <span class="metric-label">Proof Required</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="civic-features">
+      <div class="feature-item">
+        <div class="feature-icon">📸</div>
+        <span>Live hardware viewfinder prevents gallery spoofing</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🛡️</div>
+        <span>1 vote per verified citizen prevents duplicate inflation</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🏛️</div>
+        <span>Direct municipal corporation dispatch routing</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel: Citizen Login & Registration -->
+  <div class="form-panel">
+    <div class="tab-switcher">
+      <button type="button" class="tab-btn active" id="loginTabBtn" onclick="switchTab('login')">Sign In</button>
+      <button type="button" class="tab-btn" id="regTabBtn" onclick="switchTab('register')">New Citizen Account</button>
+    </div>
+
+    <!-- Sign In Form -->
+    <form id="loginForm" >
+      <div class="form-header">
+        <h3>Citizen Sign In</h3>
+        <p>Enter your phone number and password to track reports</p>
+      </div>
+
+      <div class="input-field">
+        <label>Phone Number</label>
+        <div class="input-wrapper">
+          <input type="tel" name="phone" placeholder="e.g. 9876543210" required>
+        </div>
+      </div>
+
+      <div class="input-field">
+        <label>Password</label>
+        <div class="input-wrapper" style="position: relative;">
+          <input type="password" name="password" placeholder="••••••••" required style="padding-right: 44px;">
+          <span onclick="togglePasswordVisibility(this)" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 16px; user-select: none;">👁️</span>
+        </div>
+      </div>
+
+      <a href="/forgot-password" style="display:block; text-align:right; font-size:12px; color:#60a5fa; text-decoration:none; margin-bottom:14px;">Forgot password?</a>
+
+      <button type="submit" class="btn-submit">Sign In to CivicLens</button>
+    </form>
+
+    <!-- Citizen Registration Form -->
+    <form id="regForm" style="display: none;">
+      <div class="form-header">
+        <h3>Create Citizen Account</h3>
+        <p>Join community verification in your ward</p>
+      </div>
+
+      <div class="input-field">
+        <label>Full Name</label>
+        <div class="input-wrapper">
+          <input type="text" name="name" placeholder="e.g. Rajesh Kumar" required>
+        </div>
+      </div>
+
+      <div class="input-field">
+        <label>Phone Number</label>
+        <div class="input-wrapper">
+          <input type="tel" name="phone" placeholder="10-digit mobile number" required>
+        </div>
+      </div>
+
+      <div class="input-field">
+        <label>Date of Birth</label>
+        <div class="input-wrapper">
+          <input type="date" id="regDob" name="dob" required style="color-scheme: dark;">
+        </div>
+      </div>
+
+      <div class="input-field">
+        <label>Create Password</label>
+        <div class="input-wrapper" style="position: relative;">
+          <input type="password" name="password" placeholder="Minimum 6 characters" required style="padding-right: 44px;">
+          <span onclick="togglePasswordVisibility(this)" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 16px; user-select: none;">👁️</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" style="background: var(--accent);">Create Account</button>
+    </form>
+
+    <a href="/feed" class="guest-link">Continue as Guest Explorer →</a>
+  </div>
+
+</div>
+
+<script>
+    function togglePasswordVisibility(icon) {
+    const input = icon.previousElementSibling;
+    if (input.type === "password") {
+      input.type = "text";
+      icon.innerText = "🙈";
+    } else {
+      input.type = "password";
+      icon.innerText = "👁️";
+    }
+  }
+
+  function switchTab(mode) {
+    const loginForm = document.getElementById("loginForm");
+    const regForm = document.getElementById("regForm");
+    const loginTabBtn = document.getElementById("loginTabBtn");
+    const regTabBtn = document.getElementById("regTabBtn");
+
+    if (mode === "login") {
+      loginForm.style.display = "block";
+      regForm.style.display = "none";
+      loginTabBtn.classList.add("active");
+      regTabBtn.classList.remove("active");
+    } else {
+      loginForm.style.display = "none";
+      regForm.style.display = "block";
+      regTabBtn.classList.add("active");
+      loginTabBtn.classList.remove("active");
+    }
+  }
+
+  // Handle Login via /api/login
+  document.getElementById("loginForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const phone = this.phone.value.trim();
+    const password = this.password.value;
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, password })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        window.location.href = "/";  // redirects to home/index
+      } else {
+        alert(data.message || "Invalid phone number or password");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred during login. Please try again.");
+    }
+  });
+
+  // Handle Registration via /api/register
+  document.getElementById("regForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const name = this.name.value.trim();
+    const phone = this.phone.value.trim();
+    const dob = this.dob.value.trim();
+    const password = this.password.value;
+
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, dob, password })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Account created successfully!");
+        window.location.href = "/";
+      } else {
+        alert(data.message || "Registration failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred during registration. Please try again.");
+    }
+  });
+</script>
+
+</body>
+</html>

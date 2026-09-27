@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicLens - Municipal Operations Sign In</title>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --slate-900: #0b1120;
+      --slate-800: #0f172a;
+      --slate-700: #1e293b;
+      --slate-400: #94a3b8;
+      --box-border: rgba(255, 255, 255, 0.09);
+      --accent-cyan: #38bdf8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--slate-900);
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(2, 132, 199, 0.18), transparent),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #fff;
+    }
+
+    .login-container {
+      max-width: 440px;
+      width: 100%;
+      background: var(--slate-800);
+      border: 1px solid var(--box-border);
+      border-radius: 16px;
+      padding: 34px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    .portal-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(2, 132, 199, 0.15);
+      border: 1px solid rgba(2, 132, 199, 0.3);
+      color: var(--accent-cyan);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+    }
+
+    .login-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .login-subtitle {
+      font-size: 13px;
+      color: var(--slate-400);
+      line-height: 1.4;
+      margin-bottom: 22px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    select option {
+      background: #0f172a;
+      color: #fff;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25);
+    }
+
+    .forgot-link {
+      display: block;
+      text-align: right;
+      font-size: 12px;
+      color: var(--accent-cyan);
+      text-decoration: none;
+      margin-top: -6px;
+      margin-bottom: 16px;
+      transition: color 0.2s;
+    }
+
+    .forgot-link:hover {
+      text-decoration: underline;
+      color: #7dd3fc;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+      transition: background 0.2s;
+    }
+
+    .btn-submit:hover {
+      background: var(--primary-dark);
+    }
+
+    /* Voice Agent Trigger & Console */
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 20px 0 16px;
+      color: var(--slate-400);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .divider span {
+      padding: 0 10px;
+    }
+
+    .btn-voice {
+      width: 100%;
+      padding: 11px;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px dashed rgba(56, 189, 248, 0.4);
+      border-radius: 8px;
+      color: var(--accent-cyan);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-voice:hover {
+      background: rgba(56, 189, 248, 0.16);
+      border-color: var(--accent-cyan);
+    }
+
+    .btn-voice.recording {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #f87171;
+      color: #f87171;
+    }
+
+    .voice-pulse {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
+    .btn-voice.recording .voice-pulse {
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+      animation: pulse-ring 1.3s infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.8; }
+    }
+
+    .voice-console {
+      display: none;
+      margin-top: 14px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+    }
+
+    .voice-console.active {
+      display: block;
+    }
+
+    .voice-transcript {
+      color: #94a3b8;
+      font-style: italic;
+      margin-top: 6px;
+    }
+
+    .error-msg {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #f87171;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+
+    .citizen-switch {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--slate-400);
+    }
+
+    .citizen-switch a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="portal-tag">
+      <span>🏛️</span> Official Governance Portal
+    </div>
+
+    <h2 class="login-title">Municipal Sign In</h2>
+    <p class="login-subtitle">Enter your department credentials to access escalated grievance dispatch queues.</p>
+
+    {% if error %}
+      <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/admin/login" id="officerLoginForm">
+      <div class="form-group">
+        <label>Officer ID / Service Badge</label>
+        <input type="text" id="officer_id" name="officer_id" placeholder="e.g. OFFICER101" required style="text-transform: uppercase;">
+      </div>
+
+      <div class="form-group">
+        <label>Access Key / Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
+      </div>
+
+      <!-- DOB-based Access Key Recovery Link -->
+      <a href="/admin/forgot-password" class="forgot-link">Forgot Access Key? (Verify via DOB)</a>
+
+      <button type="submit" class="btn-submit">Authenticate Officer Session</button>
+    </form>
+
+    <div class="citizen-switch">
+      Are you a citizen? <a href="/login">Go to Citizen Portal</a>
+    </div>
+  </div>
+
+  <script>
+    let isVoiceActive = false;
+    let voiceSocket = null;
+    let micStream = null;
+
+    async function toggleVoiceAgent() {
+      const btn = document.getElementById('voiceTriggerBtn');
+      const btnText = document.getElementById('voiceBtnText');
+      const consoleBox = document.getElementById('voiceConsole');
+      const statusText = document.getElementById('voiceStatus');
+      const transcriptBox = document.getElementById('voiceTranscript');
+
+      isVoiceActive = !isVoiceActive;
+
+      if (isVoiceActive) {
+        btn.classList.add('recording');
+        btnText.innerText = "Stop Voice Assistant";
+        consoleBox.classList.add('active');
+        statusText.innerText = "Connecting to AssemblyAI...";
+
+        try {
+          const res = await fetch('/api/assemblyai/token');
+          const data = await res.json();
+
+          if (!data.token) throw new Error("Could not retrieve token.");
+
+          statusText.innerText = "Listening...";
+          transcriptBox.innerText = "Microphone connected. Speak command clearly...";
+
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const sampleRate = 16000;
+          voiceSocket = new WebSocket(`wss://api.assemblyai.com/v2/realtime/ws?sample_rate=${sampleRate}&token=${data.token}`);
+
+          voiceSocket.onopen = () => {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate });
+            const source = audioCtx.createMediaStreamSource(micStream);
+            const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+
+            source.connect(processor);
+            processor.connect(audioCtx.destination);
+
+            processor.onaudioprocess = (e) => {
+              if (!isVoiceActive || voiceSocket.readyState !== WebSocket.OPEN) return;
+              const input = e.inputBuffer.getChannelData(0);
+              const pcm16 = new Int16Array(input.length);
+              for (let i = 0; i < input.length; i++) {
+                pcm16[i] = Math.max(-1, Math.min(1, input[i])) * 0x7fff;
+              }
+              voiceSocket.send(pcm16.buffer);
+            };
+          };
+
+          voiceSocket.onmessage = (message) => {
+            const resData = JSON.parse(message.data);
+            if (resData.text) {
+              transcriptBox.innerText = `"${resData.text}"`;
+              if (resData.message_type === 'FinalTranscript') {
+                processOfficerVoiceCommand(resData.text.toLowerCase());
+              }
+            }
+          };
+
+          voiceSocket.onerror = (err) => console.error("AssemblyAI Error:", err);
+          voiceSocket.onclose = () => stopVoiceAgent();
+
+        } catch (err) {
+          console.error("Voice init error:", err);
+          statusText.innerText = "Connection failed";
+          transcriptBox.innerText = "Could not initialize voice session.";
+          stopVoiceAgent();
+        }
+      } else {
+        stopVoiceAgent();
+      }
+    }
+
+    function stopVoiceAgent() {
+      isVoiceActive = false;
+      const btn = document.getElementById('voiceTriggerBtn');
+      const btnText = document.getElementById('voiceBtnText');
+      const consoleBox = document.getElementById('voiceConsole');
+
+      btn.classList.remove('recording');
+      btnText.innerText = "Talk to Dispatch Agent (AssemblyAI)";
+      consoleBox.classList.remove('active');
+
+      if (voiceSocket) {
+        voiceSocket.close();
+        voiceSocket = null;
+      }
+      if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+        micStream = null;
+      }
+    }
+
+    function processOfficerVoiceCommand(text) {
+      // 1. Navigation Commands
+      if (text.includes("citizen") || text.includes("citizen portal")) {
+        window.location.href = "/login";
+        return;
+      }
+      if (text.includes("forgot") || text.includes("reset password") || text.includes("reset key")) {
+        window.location.href = "/admin/forgot-password";
+        return;
+      }
+
+      // 2. Officer ID Extraction: "badge OFFICER101" or "ID 101"
+      const badgeMatch = text.match(/(?:badge|officer id|officer|id)\s+([a-z0-9]+)/i);
+      if (badgeMatch && badgeMatch[1]) {
+        let badge = badgeMatch[1].toUpperCase();
+        if (!badge.startsWith("OFFICER") && !isNaN(badge)) {
+          badge = `OFFICER${badge}`;
+        }
+        document.getElementById('officer_id').value = badge;
+        return;
+      }
+
+      // 3. Submit Form: "login", "authenticate", "sign in"
+      if (text.includes("login") || text.includes("sign in") || text.includes("authenticate")) {
+        const idField = document.getElementById('officer_id').value.trim();
+        const passField = document.getElementById('password').value;
+        if (idField && passField) {
+          document.getElementById('officerLoginForm').submit();
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>

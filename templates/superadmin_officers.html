@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicLens - Officer Management</title>
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-dark: #6d28d9;
+      --slate-900: #0b1120;
+      --slate-850: #0f172a;
+      --slate-800: #1e293b;
+      --slate-400: #94a3b8;
+      --box-border: rgba(255, 255, 255, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { min-height: 100vh; background-color: var(--slate-900); color: #f8fafc; padding: 24px 30px; }
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--box-border); padding-bottom: 18px; margin-bottom: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 800; }
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #f87171; padding: 6px 14px; border-radius: 8px; text-decoration: none; font-weight: 600;
+    }
+
+    .layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+
+    .panel {
+      background: var(--slate-850); border: 1px solid var(--box-border);
+      border-radius: 14px; padding: 24px;
+      box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+    }
+    .panel h3 { font-size: 16px; margin-bottom: 16px; }
+
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
+    input, select {
+      width: 100%; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 13px; outline: none;
+    }
+    select option { background: #0f172a; }
+    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2); }
+
+    .btn-submit {
+      width: 100%; padding: 11px; background: var(--primary); border: none; border-radius: 8px;
+      color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 6px;
+    }
+    .btn-submit:hover { background: var(--primary-dark); }
+
+    .msg-success {
+      background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 16px;
+    }
+    .msg-error {
+      background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 16px;
+    }
+
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { background: rgba(255, 255, 255, 0.03); padding: 12px 14px; color: var(--slate-400); font-weight: 600; border-bottom: 1px solid var(--box-border); }
+    td { padding: 12px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+    .dept-tag {
+      display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px;
+      background: rgba(124, 58, 237, 0.12); border: 1px solid rgba(124, 58, 237, 0.3); color: #a78bfa;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand"><span>🔐</span> Officer Management (Super Admin)</div>
+    <a href="/superadmin/logout" class="btn-logout">Sign Out</a>
+  </header>
+
+  <div class="layout">
+    <div class="panel">
+      <h3>Add New Officer</h3>
+
+      {% if message %}<div class="msg-success">{{ message }}</div>{% endif %}
+      {% if error %}<div class="msg-error">{{ error }}</div>{% endif %}
+
+      <form method="POST" action="/superadmin/officers">
+        <div class="form-group">
+          <label>Officer ID</label>
+          <input type="text" name="officer_id" placeholder="e.g. OFFICER205" required>
+        </div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" name="name" placeholder="e.g. Priya Sharma" required>
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <select name="department" required>
+            {% for dept in departments %}
+              <option value="{{ dept }}">{{ dept }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <input type="date" id="officer_dob" name="dob" required style="color-scheme: dark;">
+        </div>
+        <div class="form-group">
+          <label>Temporary Password</label>
+          <input type="password" name="password" placeholder="Officer should change this later" required>
+        </div>
+        <button type="submit" class="btn-submit">Create Officer Account</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3>Existing Officers ({{ officers|length }})</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Officer ID</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>DOB</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in officers %}
+          <tr>
+            <td style="font-family: monospace; color: #38bdf8;">{{ o.officer_id }}</td>
+            <td>{{ o.name }}</td>
+            <td><span class="dept-tag">{{ o.department }}</span></td>
+            <td style="color: var(--slate-400); font-family: monospace;">{{ o.dob }}</td>
+            <td style="color: var(--slate-400); font-size: 12px;">{{ o.created_at }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</body>
+</html>

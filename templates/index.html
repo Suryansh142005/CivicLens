@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicLens - Local Feed & Map</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #059669;
+      --accent-hover: #047857;
+      --slate-900: #0b0f19;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-400: #94a3b8;
+      --box-border: rgba(255, 255, 255, 0.08);
+      --amber: #f59e0b;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+    }
+
+    body { 
+      background-color: var(--slate-900);
+      background-image: 
+        linear-gradient(180deg, rgba(11, 15, 25, 0.90) 0%, rgba(15, 23, 42, 0.95) 100%),
+        url("https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=1920&q=80");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      display: flex; 
+      flex-direction: column; 
+      height: 100vh; 
+      color: #f8fafc;
+      overflow: hidden;
+    }
+
+    /* Header */
+    header { 
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--box-border);
+      color: white; 
+      padding: 12px 24px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-title span {
+      color: #60a5fa;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn { 
+      background: rgba(255, 255, 255, 0.05); 
+      border: 1px solid var(--box-border);
+      color: #e2e8f0; 
+      text-decoration: none; 
+      padding: 8px 14px; 
+      border-radius: 8px; 
+      font-weight: 600; 
+      font-size: 13px; 
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .nav-btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    .nav-btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    /* Container Split */
+    .container { 
+      display: flex; 
+      flex: 1; 
+      overflow: hidden; 
+    }
+
+    #map { 
+      flex: 1.2; 
+      height: 100%; 
+      border-right: 1px solid var(--box-border);
+      background: #020617;
+    }
+
+    #feed { 
+      flex: 0.8; 
+      height: 100%; 
+      overflow-y: auto; 
+      padding: 20px; 
+      background: rgba(15, 23, 42, 0.75); 
+      backdrop-filter: blur(16px);
+      display: flex; 
+      flex-direction: column; 
+    }
+
+    #feed::-webkit-scrollbar {
+      width: 6px;
+    }
+    #feed::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+    }
+
+    .feed-heading {
+      margin-top: 0; 
+      margin-bottom: 12px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #f1f5f9;
+    }
+
+    /* Filter Bar */
+    .filter-bar { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 7px; 
+      margin-bottom: 18px; 
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--box-border);
+    }
+
+    .filter-pill { 
+      background: rgba(255, 255, 255, 0.04); 
+      border: 1px solid var(--box-border); 
+      padding: 6px 13px; 
+      border-radius: 999px; 
+      font-size: 12px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      color: var(--slate-400); 
+      transition: all 0.2s ease; 
+    }
+
+    .filter-pill:hover { 
+      background: rgba(255, 255, 255, 0.09); 
+      color: #fff;
+    }
+
+    .filter-pill.active { 
+      background: var(--primary); 
+      color: white; 
+      border-color: var(--primary); 
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    /* Incident Cards */
+    .card { 
+      background: #0f172a; 
+      border: 1px solid var(--box-border);
+      border-radius: 14px; 
+      padding: 16px; 
+      margin-bottom: 16px; 
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(37, 99, 235, 0.4);
+    }
+
+    .card img { 
+      width: 100%; 
+      height: 190px; 
+      object-fit: cover; 
+      border-radius: 10px; 
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .tag { 
+      display: inline-flex; 
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px; 
+      border-radius: 6px; 
+      font-size: 11px; 
+      font-weight: 700; 
+      letter-spacing: 0.3px;
+    }
+
+    .tag-pending { 
+      background: rgba(245, 158, 11, 0.15); 
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fbbf24; 
+    }
+
+    .tag-inprogress { 
+      background: rgba(37, 99, 235, 0.15); 
+      border: 1px solid rgba(37, 99, 235, 0.35);
+      color: #60a5fa; 
+    }
+
+    .tag-verified { 
+      background: rgba(139, 92, 246, 0.15); 
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      color: #a78bfa; 
+    }
+
+    .tag-resolved { 
+      background: rgba(16, 185, 129, 0.15); 
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399; 
+    }
+
+    /* Vote Progress Bar */
+    .vote-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 6px;
+    }
+
+    .vote-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2563eb, #38bdf8);
+      border-radius: 999px;
+    }
+
+    /* Action Buttons */
+    .vote-btn { 
+      width: 100%; 
+      background: var(--accent); 
+      color: white; 
+      border: none; 
+      padding: 10px; 
+      border-radius: 8px; 
+      font-size: 13px;
+      font-weight: 700; 
+      cursor: pointer; 
+      margin-top: 10px; 
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .vote-btn:hover { 
+      background: var(--accent-hover); 
+    }
+
+    .vote-btn:active {
+      transform: translateY(1px);
+    }
+
+    .docket-btn { 
+      display: block; 
+      text-align: center; 
+      background: rgba(37, 99, 235, 0.15); 
+      border: 1px solid rgba(37, 99, 235, 0.35);
+      color: #60a5fa; 
+      text-decoration: none; 
+      padding: 10px; 
+      border-radius: 8px; 
+      font-size: 13px; 
+      font-weight: 700; 
+      margin-top: 10px; 
+      transition: all 0.2s;
+    }
+
+    .docket-btn:hover { 
+      background: var(--primary); 
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+      #map { height: 42vh; flex: none; border-right: none; border-bottom: 1px solid var(--box-border); }
+      #feed { height: 58vh; flex: none; }
+    }
+
+        .btn-logout {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand-title">
+    <span>📍</span> CivicLens Community Hub
+  </div>
+  <div class="nav-actions">
+    <a href="/my-reports" class="nav-btn">My Reports</a>
+    <a href="/" class="nav-btn nav-btn-primary">+ Report Issue</a>
+    <a href="/logout" class="btn-logout">Logout</a>
+  </div>
+</header>
+
+<div class="container">
+  <div id="map"></div>
+  <div id="feed">
+    <h3 class="feed-heading">Nearby Reports (Within 3 km)</h3>
+    
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <button class="filter-pill active" onclick="applyFilter('all')">All</button>
+      <button class="filter-pill" onclick="applyFilter('pending')">Needs Votes</button>
+      <button class="filter-pill" onclick="applyFilter('inprogress')">In Progress</button>
+      <button class="filter-pill" onclick="applyFilter('resolved')">Resolved</button>
+      <button class="filter-pill" onclick="applyFilter('Road Damage')">Roads</button>
+      <button class="filter-pill" onclick="applyFilter('Garbage / Waste')">Garbage</button>
+      <button class="filter-pill" onclick="applyFilter('Broken Streetlight')">Lights</button>
+      <button class="filter-pill" onclick="applyFilter('Water Leakage')">Water</button>
+    </div>
+
+    <div id="cards-container" style="color: var(--slate-400); font-size: 14px;">Scanning your location...</div>
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  let map = L.map('map').setView([20.5937, 78.9629], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+  let rawReports = [];
+  let markersLayer = L.layerGroup().addTo(map);
+  let activeFilter = 'all';
+
+  navigator.geolocation.getCurrentPosition(pos => {
+    let uLat = pos.coords.latitude;
+    let uLon = pos.coords.longitude;
+
+    map.setView([uLat, uLon], 14);
+    
+    // User Location
+    L.circleMarker([uLat, uLon], { radius: 8, color: '#2563eb', fillOpacity: 0.9 })
+      .addTo(map)
+      .bindPopup("<b>You are here</b>");
+
+    // Load Reports
+    fetch(`/api/nearby-reports?lat=${uLat}&lon=${uLon}`)
+      .then(res => res.json())
+      .then(reports => {
+        rawReports = reports;
+        renderFilteredView();
+      });
+  });
+
+  function applyFilter(filterKey) {
+    activeFilter = filterKey;
+    
+    document.querySelectorAll('.filter-pill').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.innerText.toLowerCase() === filterKey.toLowerCase() || 
+         (filterKey === 'Road Damage' && btn.innerText === 'Roads') ||
+         (filterKey === 'Garbage / Waste' && btn.innerText === 'Garbage') ||
+         (filterKey === 'Broken Streetlight' && btn.innerText === 'Lights') ||
+         (filterKey === 'Water Leakage' && btn.innerText === 'Water') ||
+         (filterKey === 'inprogress' && btn.innerText === 'In Progress') ||
+         (filterKey === 'pending' && btn.innerText === 'Needs Votes')) {
+        btn.classList.add('active');
+      }
+    });
+
+    renderFilteredView();
+  }
+
+  function renderFilteredView() {
+    markersLayer.clearLayers();
+    let container = document.getElementById("cards-container");
+    container.innerHTML = "";
+
+    // Dynamic Status Classification: Verified/10 votes -> In Progress
+    let filtered = rawReports.filter(r => {
+      let isResolved = r.status === 'Resolved';
+      let isVerified = !isResolved && r.votes_count >= 10;
+      let isInProgress = !isResolved && !isVerified && r.status === 'In Progress';
+      let isPending = !isResolved && !isVerified && !isInProgress;
+
+      if (activeFilter === 'all') return true;
+      if (activeFilter === 'pending') return isPending;
+      if (activeFilter === 'inprogress') return isInProgress;
+      if (activeFilter === 'resolved') return isResolved;
+      return r.category.toLowerCase().includes(activeFilter.toLowerCase());
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<p style="color: var(--slate-400); font-size: 14px; margin-top: 20px;">No reports found matching "${activeFilter}".</p>`;
+      return;
+    }
+
+    filtered.forEach(r => {
+      // Determine Display Status
+      let isResolved = r.status === 'Resolved';
+      let isVerified = !isResolved && r.votes_count >= 10;
+      let isInProgress = !isResolved && !isVerified && r.status === 'In Progress';
+
+      let displayStatus = isResolved ? 'Resolved' : (isVerified ? 'Community Verified' : (isInProgress ? 'In Progress' : 'Pending Verification'));
+      let markerColor = isResolved ? '#10b981' : (isVerified ? '#8b5cf6' : (isInProgress ? '#2563eb' : '#eab308'));
+      let tagClass = isResolved ? 'tag-resolved' : (isVerified ? 'tag-verified' : (isInProgress ? 'tag-inprogress' : 'tag-pending'));
+
+      // Add Map Marker
+      let marker = L.circleMarker([r.latitude, r.longitude], {
+        radius: 9,
+        color: markerColor,
+        fillColor: markerColor,
+        fillOpacity: 0.8
+      });
+      marker.bindPopup(`<b>${r.title}</b><br>${r.category}<br>Status: <b>${displayStatus}</b>`);
+      markersLayer.addLayer(marker);
+
+      // Card Photos
+      let imageHtml = `<img src="${r.image_path}" alt="Issue Photo">`;
+      if (isResolved && r.resolved_image_path) {
+        imageHtml = `
+          <div style="display: flex; gap: 8px;">
+            <div style="flex: 1;">
+              <span style="font-size: 11px; font-weight: bold; color: #f87171; display: block; margin-bottom: 4px;">BEFORE</span>
+              <img src="${r.image_path}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 8px;">
+            </div>
+            <div style="flex: 1;">
+              <span style="font-size: 11px; font-weight: bold; color: #34d399; display: block; margin-bottom: 4px;">AFTER (RESOLVED)</span>
+              <img src="${r.resolved_image_path}" style="width: 100%; height: 130px; object-fit: cover; border-radius: 8px; border: 2px solid #059669;">
+            </div>
+          </div>
+        `;
+      }
+
+      let votePercentage = Math.min(Math.round((r.votes_count / 10) * 100), 100);
+
+      let card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        ${imageHtml}
+        <h4 style="margin: 12px 0 4px 0; font-size: 16px; color: #f8fafc;">${r.title}</h4>
+        
+        <div class="tag-container">
+          <span class="tag ${tagClass}">${displayStatus}</span>
+          <span class="tag" style="background: rgba(255,255,255,0.06); border: 1px solid var(--box-border); color: #cbd5e1;">${r.votes_count}/10 Votes</span>
+        </div>
+
+        <div class="vote-track">
+          <div class="vote-fill" style="width: ${votePercentage}%;"></div>
+        </div>
+
+        <p style="font-size: 12px; color: var(--slate-400); margin: 6px 0;">📍 ${r.distance_km} km away | ${r.category}</p>
+        <p style="font-size: 13px; color: #cbd5e1; line-height: 1.4; margin: 6px 0 10px;">${r.description || "No description provided."}</p>
+        
+        ${!isResolved && r.votes_count < 10 ? 
+          `<button class="vote-btn" onclick="vote(${r.id})">👍 Confirm & Verify (+1 Vote)</button>` : ''}
+
+        ${r.votes_count >= 10 || isInProgress ? 
+          `<a href="/download-docket/${r.id}" target="_blank" class="docket-btn">📄 Download Official PDF Docket</a>` : ''}
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function vote(reportId) {
+    fetch(`/api/vote/${reportId}`, { method: "POST" })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          if (data.escalated) {
+            alert("🎉 Milestone reached! 10 votes recorded — this complaint is now In Progress and escalated to the Municipal Corporation!");
+          } else {
+            alert(`Vote confirmed! Current score: ${data.new_votes}/10`);
+          }
+          window.location.reload();
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch(err => {
+        console.error("Vote failed:", err);
+        alert("Failed to submit vote. Please try again.");
+      });
+  }
+</script>
+
+</body>
+</html>

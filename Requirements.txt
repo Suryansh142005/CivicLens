@@ -1,0 +1,5 @@
+Flask
+Werkzeug
+reportlab
+requests
+python-dotenv

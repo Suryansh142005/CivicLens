@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicLens - Municipal Operations Hub</title>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --accent: #059669;
+      --slate-900: #0b1120;
+      --slate-850: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-400: #94a3b8;
+      --box-border: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--slate-900);
+      color: #f8fafc;
+      padding: 24px 30px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--box-border);
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .officer-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      padding: 6px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* Operations Matrix Grid */
+    .tickets-table-wrapper {
+      background: var(--slate-850);
+      border: 1px solid var(--box-border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 14px 16px;
+      color: var(--slate-400);
+      font-weight: 600;
+      border-bottom: 1px solid var(--box-border);
+    }
+
+    td {
+      padding: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      vertical-align: middle;
+    }
+
+    .ticket-title {
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .ticket-meta {
+      font-size: 11px;
+      color: var(--slate-400);
+      font-family: monospace;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-progress { background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.35); color: #38bdf8; }
+    .badge-pending { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }
+    .badge-resolved { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }
+    .badge-verified { background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); color: #a78bfa; }
+    .badge-emergency { background: rgba(220, 38, 38, 0.18); border: 1px solid rgba(220, 38, 38, 0.4); color: #f87171; animation: pulse-emergency 1.6s infinite; }
+    @keyframes pulse-emergency {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .btn-action-resolve {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-action-resolve:hover { background: #047857; }
+
+    .btn-action-claim {
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-action-claim:hover { background: #0369a1; }
+
+    .claimed-by-other {
+      font-size: 11px;
+      font-weight: 600;
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      padding: 5px 10px;
+      border-radius: 6px;
+    }
+
+    /* Modal Styling */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .modal-box {
+      background: var(--slate-850);
+      border: 1px solid var(--box-border);
+      border-radius: 16px;
+      max-width: 480px;
+      width: 90%;
+      padding: 24px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-box h3 { margin-bottom: 8px; font-size: 18px; }
+    .modal-box p { font-size: 13px; color: var(--slate-400); margin-bottom: 18px; }
+
+    /* Live viewfinder for resolution proof (prevents uploading old/fake photos) */
+    .resolve-viewfinder {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      background: #020617;
+      border: 1px solid var(--box-border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .resolve-viewfinder video,
+    .resolve-viewfinder canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .resolve-hud-tag {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: 0.4px;
+    }
+
+    .resolve-camera-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .btn-resolve-camera {
+      flex: 1;
+      padding: 9px;
+      border-radius: 6px;
+      border: 1px solid var(--box-border);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-resolve-camera:hover { background: rgba(255, 255, 255, 0.1); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>🏛️</span> Municipal Operations Hub
+    </div>
+    <div class="officer-badge">
+      <span>Officer: <strong>{{ officer_id }}</strong> ({{ department }})</span>
+      <a href="/admin/logout" class="btn-logout">Sign Out</a>
+    </div>
+  </header>
+
+  <div class="tickets-table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Issue Details</th>
+          <th>Coordinates</th>
+          <th>Support</th>
+          <th>Current Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reports %}
+        <tr>
+          <td>#{{ r.id }}</td>
+          <td>
+            <div class="ticket-title">{{ r.title }}</div>
+            <div class="ticket-meta">{{ r.category }} | Logged: {{ r.created_at }}</div>
+          </td>
+          <td style="font-family: monospace; color: #38bdf8;">
+            {{ "%.4f"|format(r.latitude) }}, {{ "%.4f"|format(r.longitude) }}
+          </td>
+          <td>
+            <strong>{{ r.votes_count }}</strong> / 10 Votes
+          </td>
+          <td>
+            {% if r.status == 'Resolved' %}
+              <span class="badge badge-resolved">Resolved</span>
+            {% elif r.is_emergency %}
+              <span class="badge badge-emergency">Emergency</span>
+            {% elif r.votes_count >= 10 %}
+              <span class="badge badge-verified">Community Verified</span>
+            {% else %}
+              <span class="badge badge-progress">In Progress</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.status == 'Resolved' %}
+              <span style="color: #34d399; font-size: 12px; font-weight: 600;">✓ Verified Closed</span>
+            {% elif r.claimed_by and r.claimed_by != officer_id %}
+              <span class="claimed-by-other">🔒 Being handled by {{ r.claimed_by }}</span>
+            {% elif r.claimed_by == officer_id %}
+              <button type="button" 
+                class="btn-action-resolve" 
+                data-id="{{ r.id }}" 
+                data-title="{{ r.title }}" 
+                onclick="openResolutionModal(this.dataset.id, this.dataset.title)">
+                Upload Resolution Proof
+              </button>
+            {% else %}
+              <button type="button"
+                class="btn-action-claim"
+                data-id="{{ r.id }}"
+                onclick="claimTicket(this.dataset.id)">
+                Start Working
+              </button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Resolution Proof Modal -->
+  <div class="modal-backdrop" id="resolveModal">
+    <div class="modal-box">
+      <h3 id="modalTitle">Complete Grievance Remediation</h3>
+      <p>Capture a live photo proof of physical remediation to conclude this ticket. Uploading an existing file is not permitted — this prevents fraudulent "after" photos.</p>
+      
+      <form id="resolveForm" onsubmit="event.preventDefault(); submitResolution();">
+        <input type="hidden" id="modalReportId">
+
+        <label style="display:block; font-size:12px; margin-bottom:6px; color:#cbd5e1;">Remediation Photograph ("After" Photo) — Live Capture Only</label>
+
+        <div class="resolve-viewfinder">
+          <video id="resolveCameraStream" autoplay playsinline></video>
+          <canvas id="resolvePhotoCanvas" style="display: none;"></canvas>
+          <div class="resolve-hud-tag" id="resolveCameraStatus">SENSOR READY</div>
+        </div>
+
+        <div class="resolve-camera-actions">
+          <button type="button" class="btn-resolve-camera" id="btnResolveSnap" onclick="captureResolutionSnapshot()">
+            📸 Capture Photo
+          </button>
+          <button type="button" class="btn-resolve-camera" id="btnResolveRetake" onclick="resetResolutionCamera()" style="display: none;">
+            🔄 Retake Photo
+          </button>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display:block; font-size:12px; margin-bottom:6px; color:#cbd5e1;">Contractor Resolution Remarks</label>
+          <textarea id="resolutionNotes" style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--box-border); border-radius:8px; padding:10px; color:#fff; font-size:13px;" placeholder="Work carried out, contractor company, materials used..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" onclick="closeModal()" style="background:transparent; border:1px solid var(--box-border); color:#fff; padding:8px 16px; border-radius:6px; cursor:pointer;">Cancel</button>
+          <button type="submit" id="btnConfirmResolve" style="background:var(--accent); border:none; color:#fff; padding:8px 16px; border-radius:6px; font-weight:700; cursor:pointer;">Confirm & Resolve</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let resolveStreamInstance = null;
+    let resolveCapturedBlob = null;
+
+    const resolveVideo = document.getElementById("resolveCameraStream");
+    const resolveCanvas = document.getElementById("resolvePhotoCanvas");
+    const btnResolveSnap = document.getElementById("btnResolveSnap");
+    const btnResolveRetake = document.getElementById("btnResolveRetake");
+    const resolveCameraStatus = document.getElementById("resolveCameraStatus");
+
+    async function startResolveCamera() {
+      try {
+        resolveStreamInstance = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        resolveVideo.srcObject = resolveStreamInstance;
+        resolveCameraStatus.innerText = "SENSOR READY";
+      } catch (err) {
+        console.error("Camera access failed:", err);
+        resolveCameraStatus.innerText = "SENSOR BLOCKED";
+      }
+    }
+
+    async function claimTicket(reportId) {
+      try {
+        const res = await fetch(`/admin/claim/${reportId}`, { method: "POST" });
+        const data = await res.json();
+
+        if (data.success) {
+          window.location.reload();
+        } else {
+          alert(data.message || "Failed to claim ticket.");
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Network error claiming ticket.");
+      }
+    }
+
+    function stopResolveCamera() {
+      if (resolveStreamInstance) {
+        resolveStreamInstance.getTracks().forEach(track => track.stop());
+        resolveStreamInstance = null;
+      }
+    }
+
+    function captureResolutionSnapshot() {
+      if (!resolveStreamInstance) return;
+      resolveCanvas.width = resolveVideo.videoWidth || 640;
+      resolveCanvas.height = resolveVideo.videoHeight || 480;
+      const ctx = resolveCanvas.getContext("2d");
+      ctx.drawImage(resolveVideo, 0, 0, resolveCanvas.width, resolveCanvas.height);
+
+      resolveCanvas.toBlob((blob) => {
+        resolveCapturedBlob = blob;
+      }, "image/jpeg", 0.85);
+
+      resolveVideo.style.display = "none";
+      resolveCanvas.style.display = "block";
+      btnResolveSnap.style.display = "none";
+      btnResolveRetake.style.display = "block";
+      resolveCameraStatus.innerText = "PROOF LOCKED";
+    }
+
+    function resetResolutionCamera() {
+      resolveCapturedBlob = null;
+      resolveVideo.style.display = "block";
+      resolveCanvas.style.display = "none";
+      btnResolveSnap.style.display = "block";
+      btnResolveRetake.style.display = "none";
+      resolveCameraStatus.innerText = "SENSOR READY";
+    }
+
+    function openResolutionModal(reportId, title) {
+      document.getElementById('modalReportId').value = reportId;
+      document.getElementById('modalTitle').innerText = `Resolve #${reportId}: ${title}`;
+      document.getElementById('resolveModal').style.display = 'flex';
+      resetResolutionCamera();
+      startResolveCamera();
+    }
+
+    function closeModal() {
+      document.getElementById('resolveModal').style.display = 'none';
+      document.getElementById('resolveForm').reset();
+      stopResolveCamera();
+      resolveCapturedBlob = null;
+    }
+
+    async function submitResolution() {
+      const reportId = document.getElementById('modalReportId').value;
+      const notes = document.getElementById('resolutionNotes').value;
+
+      if (!resolveCapturedBlob) {
+        alert("Please capture a live photo before confirming resolution.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("resolution_image", resolveCapturedBlob, "resolution_proof.jpg");
+      formData.append("notes", notes);
+
+      const btn = document.getElementById('btnConfirmResolve');
+      btn.innerText = "Processing...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`/admin/resolve/${reportId}`, {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert(data.message);
+          stopResolveCamera();
+          window.location.reload();
+        } else {
+          alert(data.message || "Failed to resolve report.");
+          btn.innerText = "Confirm & Resolve";
+          btn.disabled = false;
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Network error processing resolution.");
+        btn.innerText = "Confirm & Resolve";
+        btn.disabled = false;
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicLens - My Reported Issues</title>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { 
+      background-color: #0b0f19;
+      background-image: 
+        linear-gradient(180deg, rgba(11, 15, 25, 0.88) 0%, rgba(15, 23, 42, 0.94) 100%),
+        url("https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=1920&q=80");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      margin: 0; 
+      padding: 20px; 
+      color: #f8fafc; 
+      min-height: 100vh;
+    }
+    header { max-width: 760px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { margin: 0; font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .user-pill {
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      color: #cbd5e1;
+    }
+    .nav-btn { background: #2563eb; color: white; text-decoration: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; }
+    .nav-btn:hover { background: #1d4ed8; }
+
+    .container { max-width: 760px; margin: 0 auto; }
+    
+    /* Search Box without visible phone number */
+    .phone-box { 
+      background: #0f172a; 
+      border: 1px solid rgba(255, 255, 255, 0.08); 
+      padding: 14px; 
+      border-radius: 12px; 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
+      margin-bottom: 22px; 
+      display: flex; 
+      gap: 10px; 
+      align-items: center; 
+    }
+    .phone-box input { 
+      flex: 1; 
+      padding: 11px 14px; 
+      background: rgba(255, 255, 255, 0.04); 
+      border: 1px solid rgba(255, 255, 255, 0.12); 
+      border-radius: 8px; 
+      font-size: 14px; 
+      color: #fff;
+      outline: none;
+    }
+    .phone-box input::placeholder { color: #64748b; }
+    .phone-box button { 
+      background: #2563eb; 
+      color: white; 
+      border: none; 
+      padding: 11px 22px; 
+      border-radius: 8px; 
+      font-weight: 700; 
+      font-size: 13px; 
+      cursor: pointer; 
+      transition: background 0.2s;
+    }
+    .phone-box button:hover { background: #1d4ed8; }
+
+    .card { 
+      background: #0f172a; 
+      border: 1px solid rgba(255, 255, 255, 0.08); 
+      border-radius: 14px; 
+      padding: 20px; 
+      margin-bottom: 20px; 
+      box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.6); 
+    }
+    .status-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; }
+    .badge-pending { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }
+    .badge-progress { background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(37, 99, 235, 0.35); color: #60a5fa; }
+    .badge-verified { background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); color: #a78bfa; }
+    .badge-resolved { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }
+
+    .stepper { display: flex; justify-content: space-between; position: relative; margin: 24px 0 20px 0; }
+    .stepper::before {
+      content: "";
+      position: absolute;
+      top: 7px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.08);
+      z-index: 1;
+    }
+    .step { text-align: center; font-size: 11px; color: #94a3b8; font-weight: 600; flex: 1; position: relative; z-index: 2; }
+    .step.active { color: #60a5fa; }
+    .step.completed { color: #34d399; }
+    .step-dot { width: 14px; height: 14px; border-radius: 50%; background: #1e293b; border: 2px solid #475569; margin: 0 auto 8px auto; }
+    .step.active .step-dot { background: #2563eb; border-color: #93c5fd; box-shadow: 0 0 10px rgba(37, 99, 235, 0.7); }
+    .step.completed .step-dot { background: #059669; border-color: #6ee7b7; box-shadow: 0 0 10px rgba(5, 150, 105, 0.6); }
+
+    .photo-grid { display: flex; gap: 12px; margin-top: 14px; }
+    .photo-box { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .photo-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+    .photo-grid img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08); }
+    
+    .docket-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); padding: 8px 14px; border-radius: 8px; text-decoration: none; margin-top: 14px; }
+    .docket-link:hover { background: rgba(56, 189, 248, 0.18); color: #fff; }
+
+        .btn-logout {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1><span>📍</span> My Reported Issues</h1>
+    <div class="nav-actions">
+      <div class="user-pill">
+        Citizen: {{ session.get('user_name') or 'Verified Citizen' }}
+      </div>
+      <a href="/feed" class="nav-btn" style="background: rgba(255, 255, 255, 0.08);">Feed</a>
+      <a href="/" class="nav-btn">+ New Report</a>
+      <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Filter Search Box: shows category/title filter instead of phone number -->
+    <div class="phone-box">
+      <input type="text" id="filterInput" placeholder="Filter your reports by keyword or category..." oninput="filterReports()">
+      <button onclick="loadUserReports()">Refresh</button>
+    </div>
+
+    <div id="reportsList" style="color: #94a3b8; font-size: 14px; text-align: center; padding: 40px 0;">Loading your complaint history...</div>
+  </div>
+
+  <script>
+    let userReportsCache = [];
+
+    // Session-backed phone passed directly from server
+    const sessionPhone = "{{ session.get('user_phone') or '' }}";
+
+    window.onload = () => {
+      loadUserReports();
+    };
+
+    function loadUserReports() {
+      // Fetch user's reports using the active authenticated session
+      const queryParam = sessionPhone ? `?phone=${sessionPhone}` : '';
+      
+      fetch(`/api/my-reports${queryParam}`)
+        .then(res => res.json())
+        .then(reports => {
+          userReportsCache = reports || [];
+          renderReports(userReportsCache);
+        })
+        .catch(err => {
+          console.error("Fetch error:", err);
+          document.getElementById("reportsList").innerHTML = "<p style='color: #ef4444;'>Failed to load complaints. Please ensure you are logged in.</p>";
+        });
+    }
+
+    function renderReports(reports) {
+      let container = document.getElementById("reportsList");
+      container.innerHTML = "";
+
+      if (!reports || reports.length === 0) {
+        container.innerHTML = "<p style='color: #94a3b8;'>No reported complaints found.</p>";
+        return;
+      }
+
+      reports.forEach(r => {
+        let isResolved = r.status === "Resolved";
+        let isVerified = !isResolved && r.votes_count >= 10;
+        let isInProgress = !isResolved && !isVerified && r.status === "In Progress";
+
+        // Dynamic status mapping (10+ votes automatically show as Community Verified)
+        let displayStatus = isResolved ? "Resolved" : (isVerified ? "Community Verified" : (isInProgress ? "In Progress" : "Pending Verification"));
+        let badgeClass = isResolved ? "badge-resolved" : (isVerified ? "badge-verified" : (isInProgress ? "badge-progress" : "badge-pending"));
+
+        let step1 = "completed";
+        let step2 = (isInProgress || isResolved) ? "completed" : "active";
+        let step3 = isInProgress ? "active" : (isResolved ? "completed" : "");
+        let step4 = isResolved ? "completed" : "";
+
+        let card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="status-row">
+            <span style="font-weight: 700; font-size: 16px; color: #f8fafc;">#${r.id} - ${r.title}</span>
+            <span class="badge ${badgeClass}">${displayStatus}</span>
+          </div>
+          <p style="font-size: 12px; color: #94a3b8; margin: 0 0 12px 0;">Filed on: ${r.created_at} | ${r.category}</p>
+
+          <!-- Progress Stepper -->
+          <div class="stepper">
+            <div class="step ${step1}"><div class="step-dot"></div>Reported</div>
+            <div class="step ${step2}"><div class="step-dot"></div>Verified (${r.votes_count}/10)</div>
+            <div class="step ${step3}"><div class="step-dot"></div>In Progress</div>
+            <div class="step ${step4}"><div class="step-dot"></div>Resolved</div>
+          </div>
+
+          <!-- Evidence Proof Photos -->
+          <div class="photo-grid">
+            <div class="photo-box">
+              <span class="photo-tag" style="color: #f87171;">Original Hardware Proof</span>
+              <img src="${r.image_path}" alt="Original Report">
+            </div>
+            ${r.resolved_image_path ? `
+            <div class="photo-box">
+              <span class="photo-tag" style="color: #34d399;">Resolution Proof</span>
+              <img src="${r.resolved_image_path}" alt="Resolution Proof" style="border: 2px solid #059669;">
+            </div>` : ''}
+          </div>
+
+          <a href="/download-docket/${r.id}" target="_blank" class="docket-link">📄 View Escalation Docket (PDF)</a>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filterReports() {
+      const query = document.getElementById("filterInput").value.toLowerCase().trim();
+      const filtered = userReportsCache.filter(r => 
+        (r.title && r.title.toLowerCase().includes(query)) ||
+        (r.category && r.category.toLowerCase().includes(query)) ||
+        (r.status && r.status.toLowerCase().includes(query))
+      );
+      renderReports(filtered);
+    }
+  </script>
+
+</body>
+</html>

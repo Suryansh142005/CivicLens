@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicLens - Report Field Grievance</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #059669;
+      --slate-900: #0b0f19;
+      --slate-850: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-400: #94a3b8;
+      --slate-100: #f1f5f9;
+      --box-border: rgba(255, 255, 255, 0.08);
+      --cyan: #38bdf8;
+      --red: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: #0b0f19;
+      background-image: 
+        linear-gradient(180deg, rgba(11, 15, 25, 0.88) 0%, rgba(15, 23, 42, 0.94) 100%),
+        url("https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=1920&q=80");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px 60px;
+    }
+
+    .portal-nav {
+      max-width: 1060px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .nav-brand span {
+      color: #60a5fa;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-pill {
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--box-border);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      color: #cbd5e1;
+    }
+
+    .btn-logout {
+      font-size: 12px;
+      font-weight: 600;
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fff;
+    }
+
+    .portal-container {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      max-width: 1060px;
+      width: 100%;
+      min-height: 640px;
+      background: var(--slate-850);
+      border: 1px solid var(--box-border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    .left-panel {
+      position: relative;
+      background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.22) 0%, transparent 60%),
+                  radial-gradient(circle at 90% 80%, rgba(5, 150, 105, 0.18) 0%, transparent 50%),
+                  #111827;
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--box-border);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid rgba(37, 99, 235, 0.35);
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #60a5fa;
+      width: fit-content;
+      margin-bottom: 14px;
+    }
+
+    .left-title {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .left-desc {
+      font-size: 13px;
+      color: var(--slate-400);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .viewfinder-box {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video, canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hud-tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-pulse {
+      width: 6px;
+      height: 6px;
+      background: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #22c55e;
+    }
+
+    .viewfinder-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .btn-camera {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-camera:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* CivicVoice Console (Powered by AssemblyAI) */
+    .civicvoice-card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 10px 25px -8px rgba(0, 0, 0, 0.4);
+    }
+
+    .civicvoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .civicvoice-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-civicvoice {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-civicvoice:hover {
+      background: rgba(56, 189, 248, 0.25);
+    }
+
+    .btn-civicvoice.recording {
+      background: var(--red);
+      border-color: #f87171;
+      color: #fff;
+      animation: pulse-ring 1.3s infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .civicvoice-transcript {
+      font-size: 12px;
+      color: var(--slate-400);
+      font-style: italic;
+      min-height: 32px;
+      line-height: 1.4;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 10px;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 10px 12px;
+      border-radius: 10px;
+    }
+
+    .metric-val {
+      font-size: 12px;
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--cyan);
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: 2px;
+      display: block;
+    }
+
+    .right-panel {
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: var(--slate-850);
+    }
+
+    .form-header h3 {
+      font-size: 20px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .form-header p {
+      font-size: 13px;
+      color: var(--slate-400);
+      margin-bottom: 20px;
+    }
+
+    .category-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .cat-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 6px;
+      border-radius: 8px;
+      color: var(--slate-400);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .cat-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    .cat-btn .icon {
+      font-size: 16px;
+    }
+
+    .input-field {
+      margin-bottom: 16px;
+    }
+
+    .input-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    .input-wrapper input,
+    .input-wrapper textarea {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .input-wrapper textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .input-wrapper input:focus,
+    .input-wrapper textarea:focus {
+      border-color: var(--primary);
+      background: rgba(37, 99, 235, 0.05);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    .input-wrapper input::placeholder,
+    .input-wrapper textarea::placeholder {
+      color: #64748b;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 6px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-submit:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-submit:active {
+      transform: translateY(1px);
+    }
+
+    .btn-submit:disabled {
+      background: var(--slate-700);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .emergency-badge {
+      display: none;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      align-items: center;
+      gap: 6px;
+    }
+
+    @media (max-width: 860px) {
+      .portal-container {
+        grid-template-columns: 1fr;
+      }
+      .left-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--box-border);
+        padding: 24px;
+      }
+      .right-panel {
+        padding: 24px;
+      }
+    }
+
+    .nav-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .nav-link:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--box-border);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <div class="portal-nav">
+    <a href="/" class="nav-brand">
+      <span>📍</span> CivicLens
+    </a>
+    <div class="nav-actions">
+      <a href="/feed" class="nav-link">Community Feed</a>
+      <a href="/my-reports" class="nav-link">My Reports</a>
+      <div class="user-pill">
+        Citizen: {{ user_name or user_phone }}
+      </div>
+      <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+  </div>
+
+  <div class="portal-container">
+
+    <!-- Left Hero/Viewfinder Panel -->
+    <div class="left-panel">
+      <div class="brand-badge">
+        <span>🛡️</span> Hardware Proof Required
+      </div>
+      <h2 class="left-title">Verified Field Evidence</h2>
+      <p class="left-desc">
+        Optical sensor and satellite coordinates are cryptographically bound to eliminate false civic reports.
+      </p>
+
+      <!-- Hardware Viewfinder -->
+      <div class="viewfinder-box">
+        <video id="cameraStream" autoplay playsinline></video>
+        <canvas id="photoCanvas" style="display: none;"></canvas>
+        <div class="hud-tag">
+          <div class="hud-pulse"></div>
+          <span id="cameraStatus">SENSOR READY</span>
+        </div>
+      </div>
+
+      <div class="viewfinder-actions">
+        <button type="button" class="btn-camera" id="btnSnap" onclick="captureSnapshot()">
+          📸 Capture Photo
+        </button>
+        <button type="button" class="btn-camera" id="btnRetake" onclick="resetCamera()" style="display: none;">
+          🔄 Retake Photo
+        </button>
+      </div>
+
+      <!-- CivicVoice AI Integration (AssemblyAI Universal-3 Pro) -->
+      <div class="civicvoice-card">
+        <div class="civicvoice-header">
+          <div class="civicvoice-title">
+            <span>🎙️</span> CivicVoice AI (AssemblyAI)
+          </div>
+          <button type="button" class="btn-civicvoice" id="btnCivicVoice" onclick="toggleCivicVoice()">
+            <span id="voiceAgentBtnText">Speak to CivicVoice</span>
+          </button>
+        </div>
+        <div class="civicvoice-transcript" id="voiceLiveTranscript">
+          "Speak naturally: 'Deep pothole on Mall Road with water leaking, hazardous for two-wheelers'..."
+        </div>
+      </div>
+
+      <!-- GPS Telemetry Metrics Grid -->
+      <div class="metric-grid">
+        <div class="metric-card">
+          <span class="metric-val" id="coordsDisplay">Acquiring satellites...</span>
+          <span class="metric-label">Locked Coordinates</span>
+        </div>
+        <div class="metric-card" style="text-align: center;">
+          <span class="metric-val" id="gpsIndicator" style="color: #fbbf24;">SYNCING ⏳</span>
+          <span class="metric-label">GPS Status</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Incident Form Panel -->
+    <div class="right-panel">
+      <div class="form-header">
+        <h3>File Public Grievance</h3>
+        <p>Details autofill dynamically as you speak to CivicVoice</p>
+      </div>
+
+      <div class="emergency-badge" id="emergencyBadge">
+        🚨 Emergency Escalation Priority Detected
+      </div>
+
+      <form id="reportForm" onsubmit="event.preventDefault(); submitReport();">
+        
+        <!-- Category Selector -->
+        <label class="category-label">Select Issue Category</label>
+        <div class="category-grid">
+          <button type="button" class="cat-btn active" data-cat="Road Damage" onclick="selectCategory('Road Damage', this)">
+            <span class="icon">🚧</span>
+            <span>Road</span>
+          </button>
+          <button type="button" class="cat-btn" data-cat="Garbage / Waste" onclick="selectCategory('Garbage / Waste', this)">
+            <span class="icon">🗑️</span>
+            <span>Waste</span>
+          </button>
+          <button type="button" class="cat-btn" data-cat="Broken Streetlight" onclick="selectCategory('Broken Streetlight', this)">
+            <span class="icon">💡</span>
+            <span>Lighting</span>
+          </button>
+          <button type="button" class="cat-btn" data-cat="Water Leakage" onclick="selectCategory('Water Leakage', this)">
+            <span class="icon">🚰</span>
+            <span>Leakage</span>
+          </button>
+          <button type="button" class="cat-btn" data-cat="Open Manhole" onclick="selectCategory('Open Manhole', this)">
+            <span class="icon">⚠️</span>
+            <span>Manhole</span>
+          </button>
+          <button type="button" class="cat-btn" data-cat="Other" onclick="selectCategory('Other', this)">
+            <span class="icon">📋</span>
+            <span>Other</span>
+          </button>
+        </div>
+
+        <div class="input-field">
+          <label>Grievance Title</label>
+          <div class="input-wrapper">
+            <input type="text" id="reportTitle" placeholder="e.g. Major pothole opposite metro pillar 42" required>
+          </div>
+        </div>
+
+        <div class="input-field">
+          <label>Issue Description</label>
+          <div class="input-wrapper">
+            <textarea id="reportDesc" placeholder="Describe the depth, location markers, or pedestrian hazards..." required></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmitReport">
+          Submit Hardware-Verified Grievance
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    let streamInstance = null;
+    let capturedBase64 = null;
+    let currentLat = null;
+    let currentLon = null;
+    let selectedCategory = "Road Damage";
+    let isEmergencyReport = false;
+
+    const video = document.getElementById("cameraStream");
+    const canvas = document.getElementById("photoCanvas");
+    const btnSnap = document.getElementById("btnSnap");
+    const btnRetake = document.getElementById("btnRetake");
+    const coordsDisplay = document.getElementById("coordsDisplay");
+    const gpsIndicator = document.getElementById("gpsIndicator");
+    const cameraStatus = document.getElementById("cameraStatus");
+
+    // Camera Hardware Access
+    async function startCamera() {
+      try {
+        streamInstance = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        video.srcObject = streamInstance;
+        cameraStatus.innerText = "SENSOR READY";
+      } catch (err) {
+        console.error("Camera access failed:", err);
+        cameraStatus.innerText = "SENSOR BLOCKED";
+        cameraStatus.style.color = "#f87171";
+      }
+    }
+
+    function captureSnapshot() {
+      if (!streamInstance) return;
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      capturedBase64 = canvas.toDataURL("image/jpeg", 0.85);
+
+      video.style.display = "none";
+      canvas.style.display = "block";
+      btnSnap.style.display = "none";
+      btnRetake.style.display = "block";
+      cameraStatus.innerText = "PROOF LOCKED";
+    }
+
+    function resetCamera() {
+      capturedBase64 = null;
+      video.style.display = "block";
+      canvas.style.display = "none";
+      btnSnap.style.display = "block";
+      btnRetake.style.display = "none";
+      cameraStatus.innerText = "SENSOR READY";
+    }
+
+    // Geolocation Acquisition
+    function acquireLocation() {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            currentLat = pos.coords.latitude;
+            currentLon = pos.coords.longitude;
+            coordsDisplay.innerText = `${currentLat.toFixed(6)}, ${currentLon.toFixed(6)}`;
+            gpsIndicator.innerText = "LOCKED 🟢";
+            gpsIndicator.style.color = "#10b981";
+          },
+          (err) => {
+            coordsDisplay.innerText = "Permission Denied";
+            gpsIndicator.innerText = "BLOCKED 🔴";
+            gpsIndicator.style.color = "#f87171";
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      }
+    }
+
+    function selectCategory(category, element) {
+      selectedCategory = category;
+      document.querySelectorAll(".cat-btn").forEach(c => c.classList.remove("active"));
+      if (element) {
+        element.classList.add("active");
+      } else {
+        const matchingBtn = document.querySelector(`.cat-btn[data-cat="${category}"]`);
+        if (matchingBtn) matchingBtn.classList.add("active");
+      }
+    }
+
+    // --- BULLETPROOF CIVICVOICE AI (STREAMING + FALLBACK) ---
+    let isVoiceActive = false;
+    let voiceSocket = null;
+    let micStream = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let accumulatedTranscript = "";
+    let audioCtx = null;
+    let processor = null;
+
+    async function toggleCivicVoice() {
+      if (!isVoiceActive) {
+        startCivicVoice();
+      } else {
+        stopCivicVoice();
+      }
+    }
+
+    async function startCivicVoice() {
+      const btn = document.getElementById("btnCivicVoice");
+      const btnText = document.getElementById("voiceAgentBtnText");
+      const liveTranscript = document.getElementById("voiceLiveTranscript");
+
+      accumulatedTranscript = "";
+      audioChunks = [];
+      liveTranscript.style.color = "#38bdf8";
+      liveTranscript.innerText = "Requesting microphone permission...";
+
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (err) {
+        console.error("Mic permission error:", err);
+        liveTranscript.style.color = "#f87171";
+        liveTranscript.innerText = "Microphone access blocked. Please allow mic permissions in your browser.";
+        return;
+      }
+
+      isVoiceActive = true;
+      btn.classList.add("recording");
+      btnText.innerText = "Stop CivicVoice (Done)";
+      liveTranscript.innerText = "Connecting to AssemblyAI Universal-3 Pro...";
+
+      // Try WebSocket Real-Time Connection
+      let socketConnected = false;
+      try {
+        const tokenRes = await fetch("/api/assemblyai/token");
+        const tokenData = await tokenRes.json();
+
+        if (tokenData && tokenData.token) {
+          const sampleRate = 16000;
+          voiceSocket = new WebSocket(`wss://api.assemblyai.com/v2/realtime/ws?sample_rate=${sampleRate}&token=${tokenData.token}`);
+
+          voiceSocket.onopen = () => {
+            socketConnected = true;
+            liveTranscript.innerText = "🎙️ CivicVoice is listening! Describe your grievance...";
+
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate });
+            const source = audioCtx.createMediaStreamSource(micStream);
+            processor = audioCtx.createScriptProcessor(4096, 1, 1);
+
+            source.connect(processor);
+            processor.connect(audioCtx.destination);
+
+            processor.onaudioprocess = (e) => {
+              if (!isVoiceActive || !voiceSocket || voiceSocket.readyState !== WebSocket.OPEN) return;
+              const input = e.inputBuffer.getChannelData(0);
+              const pcm16 = new Int16Array(input.length);
+              for (let i = 0; i < input.length; i++) {
+                pcm16[i] = Math.max(-1, Math.min(1, input[i])) * 0x7fff;
+              }
+              // AssemblyAI expects base64 encoded audio_data
+              const base64Audio = btoa(String.fromCharCode(...new Uint8Array(pcm16.buffer)));
+              voiceSocket.send(JSON.stringify({ audio_data: base64Audio }));
+            };
+          };
+
+          voiceSocket.onmessage = (message) => {
+            const data = JSON.parse(message.data);
+            if (data.text) {
+              liveTranscript.innerText = `"${data.text}"`;
+              if (data.message_type === "FinalTranscript") {
+                accumulatedTranscript += (accumulatedTranscript ? " " : "") + data.text;
+              }
+            }
+          };
+
+          voiceSocket.onerror = (err) => console.warn("WebSocket error, falling back to batch:", err);
+          voiceSocket.onclose = () => {
+            console.log("WebSocket stream closed.");
+          };
+        }
+      } catch (err) {
+        console.warn("Real-time token unavailable, relying on batch recorder fallback:", err);
+      }
+
+      // Simultaneously initialize MediaRecorder as a reliable fallback
+      try {
+        mediaRecorder = new MediaRecorder(micStream);
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunks.push(e.data);
+        };
+        mediaRecorder.start();
+        if (!socketConnected) {
+          liveTranscript.innerText = "🎙️ CivicVoice is listening (Recording)... Speak now, then click Stop.";
+        }
+      } catch (e) {
+        console.error("MediaRecorder fallback failed:", e);
+      }
+    }
+
+    async function stopCivicVoice() {
+      const btn = document.getElementById("btnCivicVoice");
+      const btnText = document.getElementById("voiceAgentBtnText");
+      const liveTranscript = document.getElementById("voiceLiveTranscript");
+
+      isVoiceActive = false;
+      btn.classList.remove("recording");
+      btnText.innerText = "Speak to CivicVoice";
+      liveTranscript.style.color = "#cbd5e1";
+      liveTranscript.innerText = "Analyzing your speech with AssemblyAI...";
+
+      // Stop Audio Context & Processor
+      if (processor) {
+        try { processor.disconnect(); } catch (_) {}
+        processor = null;
+      }
+      if (audioCtx) {
+        try { audioCtx.close(); } catch (_) {}
+        audioCtx = null;
+      }
+
+      // Close WebSocket safely
+      if (voiceSocket) {
+        try {
+          if (voiceSocket.readyState === WebSocket.OPEN) {
+            voiceSocket.send(JSON.stringify({ terminate_session: true }));
+          }
+          voiceSocket.close();
+        } catch (_) {}
+        voiceSocket = null;
+      }
+
+      // Case A: Real-time transcript was captured
+      if (accumulatedTranscript && accumulatedTranscript.trim().length > 3) {
+        processTranscriptText(accumulatedTranscript.trim());
+        stopMicTracks();
+        return;
+      }
+
+      // Case B: WebSocket didn't capture or disconnected; send recorded audio to server
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.onstop = async () => {
+          stopMicTracks();
+          const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+          if (audioBlob.size < 500) {
+            liveTranscript.style.color = "#f87171";
+            liveTranscript.innerText = "No voice input detected. Click 'Speak to CivicVoice' to try again.";
+            return;
+          }
+          await uploadAudioForProcessing(audioBlob);
+        };
+        mediaRecorder.stop();
+      } else {
+        stopMicTracks();
+        liveTranscript.style.color = "#f87171";
+        liveTranscript.innerText = "No voice input detected. Click 'Speak to CivicVoice' to try again.";
+      }
+    }
+
+    function stopMicTracks() {
+      if (micStream) {
+        micStream.getTracks().forEach(t => t.stop());
+        micStream = null;
+      }
+    }
+
+    // Process via fast text endpoint
+    async function processTranscriptText(transcript) {
+      const liveTranscript = document.getElementById("voiceLiveTranscript");
+      try {
+        const res = await fetch("/api/voice-process-text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transcript })
+        });
+        const data = await res.json();
+        applyVoiceData(data, transcript);
+      } catch (err) {
+        console.error("Text process error:", err);
+        document.getElementById("reportDesc").value = transcript;
+        liveTranscript.innerText = "Transcript placed in description.";
+      }
+    }
+
+    // Fallback: Process via file upload endpoint
+    async function uploadAudioForProcessing(blob) {
+      const liveTranscript = document.getElementById("voiceLiveTranscript");
+      liveTranscript.innerText = "Transcribing voice via AssemblyAI...";
+
+      const formData = new FormData();
+      formData.append("audio", blob, "voice_report.webm");
+
+      try {
+        const res = await fetch("/api/voice-process", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          applyVoiceData(data, data.transcript || data.description);
+        } else {
+          liveTranscript.style.color = "#f87171";
+          liveTranscript.innerText = data.message || "Could not transcribe audio.";
+        }
+      } catch (err) {
+        console.error("Audio processing failed:", err);
+        liveTranscript.style.color = "#f87171";
+        liveTranscript.innerText = "Network error transcribing voice.";
+      }
+    }
+
+    // Populate inputs and UI
+    function applyVoiceData(data, rawText) {
+      const liveTranscript = document.getElementById("voiceLiveTranscript");
+      document.getElementById("reportTitle").value = data.title || rawText.slice(0, 50);
+      document.getElementById("reportDesc").value = data.description || rawText;
+
+      if (data.category) {
+        selectCategory(data.category, null);
+      }
+
+      if (data.is_emergency) {
+        isEmergencyReport = true;
+        document.getElementById("emergencyBadge").style.display = "flex";
+      } else {
+        isEmergencyReport = false;
+        document.getElementById("emergencyBadge").style.display = "none";
+      }
+
+      liveTranscript.style.color = "#34d399";
+      liveTranscript.innerText = `✅ Pre-filled: "${data.title || 'Report populated'}"`;
+    }
+
+    // Submit Report Handler
+    async function submitReport() {
+      const title = document.getElementById("reportTitle").value.trim();
+      const desc = document.getElementById("reportDesc").value.trim();
+
+      if (!capturedBase64) {
+        alert("Physical photo proof is mandatory. Please capture a frame with the camera.");
+        return;
+      }
+      if (!currentLat || !currentLon) {
+        alert("Hardware coordinates required. Please allow location permissions.");
+        return;
+      }
+      if (!title || !desc) {
+        alert("Please enter both a title and description.");
+        return;
+      }
+
+      const btnSubmit = document.getElementById("btnSubmitReport");
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = "Transmitting Verified Telemetry...";
+
+      const payload = {
+        title: title,
+        description: desc,
+        category: selectedCategory,
+        latitude: currentLat,
+        longitude: currentLon,
+        image_data: capturedBase64,
+        is_emergency: isEmergencyReport
+      };
+
+      try {
+        const res = await fetch("/api/submit-report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert("Grievance registered successfully! Redirecting to feed...");
+          window.location.href = "/feed";
+        } else {
+          alert(data.message || "Failed to submit report.");
+          btnSubmit.disabled = false;
+          btnSubmit.innerText = "Submit Hardware-Verified Grievance";
+        }
+      } catch (err) {
+        console.error("Submission failed:", err);
+        alert("Network error transmitting grievance.");
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = "Submit Hardware-Verified Grievance";
+      }
+    }
+
+    window.onload = () => {
+      startCamera();
+      acquireLocation();
+    };
+  </script>
+</body>
+</html>
