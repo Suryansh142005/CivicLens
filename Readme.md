@@ -58,7 +58,7 @@ Traditional municipal grievance systems are broken: fake or downloaded photos, d
 ### 1. Clone and install dependencies
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Suryansh142005/CivicLens.git 
 cd CivicLens
 pip install -r requirements.txt
 ```
