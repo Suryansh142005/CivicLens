@@ -236,6 +236,26 @@
     }
 
     .btn-resolve-camera:hover { background: rgba(255, 255, 255, 0.1); }
+
+  .btn-action-pdf {
+  display: inline-block;
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  color: #f87171;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-action-pdf:hover {
+  background: rgba(220, 38, 38, 0.22);
+  border-color: rgba(220, 38, 38, 0.55);
+  color: #fca5a5;
+}
   </style>
 </head>
 <body>
@@ -259,6 +279,7 @@
           <th>Coordinates</th>
           <th>Support</th>
           <th>Current Status</th>
+          <th>PDF Docket</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -286,6 +307,14 @@
             {% else %}
               <span class="badge badge-progress">In Progress</span>
             {% endif %}
+          </td>
+          <td>
+            <a 
+            href="{{ url_for('download_docket', report_id=r.id) }}"
+            class="btn-action-pdf"
+            target="_blank">
+              📄 PDF Docket
+            </a>
           </td>
           <td>
             {% if r.status == 'Resolved' %}
